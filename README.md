@@ -46,8 +46,36 @@ In addition, I implemented a Tcl/Tk display that connects to Trick's variable se
 <img width="599" height="838" alt="image" src="https://github.com/user-attachments/assets/faf88fc8-f7ab-4c23-8a19-90292dbd5cce" />
 
 # CCSDS Space Packet Protocol
+Space Packet Protocol is a standardized format used to wrap data packets that are sent between spacecraft systems. To gain more experience in Space Packet Protocol and use it to transfer useful information, CCSDS is implemented on the simulation host computer and a STM32 Blackpill microcontroller to send motor simulation data in real time over USB and displayed on an OLED display. 
+
+Each packet consists of a primary header containing packet identification and sequence control fields, and a secondary header containing the motor telemetry payload. For example shown below is what the host PC and STM32 side of the telemetry pipeline will show during transmission.
+
+<img width="719" height="104" alt="image" src="https://github.com/user-attachments/assets/502cf2ed-c9a1-4843-af84-e5a1d847909b" />
+
+![IMG_6880](https://github.com/user-attachments/assets/036c3b7f-6ae6-4c69-b055-a00abeea0ac2)
 
 # Combining Trick With CCSDS 
+## Host PC Side
+Combining the BLDC Trick simulation with CCSDS thankfully does not need a complete redesign of the code due to how modular NASA made Trick. Following very closely with NASA's cannonball tutorial, I added additional logic that automatically searches for the STM32 serial port, establishes a serial connection, and then for each variable recieved from the BLDC simulation server gets packaged into a space packet and sent to the STM32.
+
+## STM32 Side
+Adapting the decoder logic from my previous CCSDS SPP implementation, it was fairly straightforward to listen to USB serial instead of UART. 
+
+For the STM32 Blackpill and related processors specifically, you are able to take advantage of the floating point microarchitecture for floating point operations. This was helpful in displaying certain output variables with more precision.
+
+### Setting PlatformIO Floating Point Build Flags
+Depending on your IDE, this process will be slightly different, but these required build flags were required to access the coproccesors. Additionally, make sure the first three build flags are called to enable I2C and USB serial communication via DFU.
+
+```
+build_flags =
+    -DHAL_I2C_MODULE_ENABLED
+    -DUSBCON
+    -DUSBD_USE_CDC
+    -mfloat-abi=hard
+    -mfpu=fpv4-sp-d16
+```
+
+With those build flags enabled, operations such as **dtostrf** and **snprintf** were able to print and convert float variables with no issues.
 
 # Setting Up
 
