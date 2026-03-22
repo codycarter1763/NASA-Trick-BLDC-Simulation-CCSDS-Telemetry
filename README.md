@@ -64,7 +64,7 @@ Adapting the decoder logic from my previous CCSDS SPP implementation, it was fai
 For the STM32 Blackpill and related processors specifically, you are able to take advantage of the floating point microarchitecture for floating point operations. This was helpful in displaying certain output variables with more precision.
 
 ### Setting PlatformIO Floating Point Build Flags
-Depending on your IDE, this process will be slightly different, but these required build flags were required to access the coproccesors. Additionally, make sure the first three build flags are called to enable I2C and USB serial communication via DFU.
+Depending on your IDE, this process will be slightly different, but these build flags were required to access the coproccesors. Additionally, make sure the first three build flags are called to enable I2C and USB serial communication via DFU.
 
 ```
 build_flags =
@@ -94,14 +94,15 @@ cd SIM_BLDC_Motor
 trick-CP
 ./run.sh
 ```
+After running ./run.sh a Tcl gui and the Trick simulation menu should appear. 
 
-Press **Start** in the Sim Control Panel. The bridge and display will launch automatically.
+To upload firmware to the STM32, open PlatformIO or any IDE, and upload main.cpp in STM32 CCSDS Display / src.
 
-To upload firmware to the STM32:
-```bash
-cd STM32_CCSDS_Receiver
-pio run --target upload
+By this point, run the command below to open the Tcl gui and the Trick simulation menu.
 ```
+./run.sh
+```
+Using the Tcl gui, all you need to do is either run the simulation with default values, or change voltage or load, and click apply for the simulation to run. If connected to STM32, the OLED display should automatically start displaying values when the simulation starts.
 
 ---
 # Results
