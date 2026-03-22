@@ -59,7 +59,7 @@ Each packet consists of a primary header containing packet identification and se
 Combining the BLDC Trick simulation with CCSDS thankfully does not need a complete redesign of the code due to how modular NASA made Trick. Following very closely with NASA's cannonball tutorial, I added additional logic that automatically searches for the STM32 serial port, establishes a serial connection, and then for each variable recieved from the BLDC simulation server gets packaged into a space packet and sent to the STM32.
 
 ## STM32 Side
-Adapting the decoder logic from my previous CCSDS SPP implementation, it was fairly straightforward to listen to USB serial instead of UART. 
+Adapting the decoder logic from my previous CCSDS SPP implementation, it was fairly straightforward to listen to USB serial instead of UART. The embedded software includes all of the CCSDS SPP decoding logic, serial communication, and display logic needed for operation.
 
 For the STM32 Blackpill and related processors specifically, you are able to take advantage of the floating point microarchitecture for floating point operations. This was helpful in displaying certain output variables with more precision.
 
@@ -78,5 +78,32 @@ build_flags =
 With those build flags enabled, operations such as **dtostrf** and **snprintf** were able to print and convert float variables with no issues.
 
 # Setting Up
+If you are starting from scratch, complete the following before proceeding:
 
+1. Install NASA Trick following the [official install guide](https://nasa.github.io/trick/documentation/install_guide/Install-Guide)
+2. Complete the [Trick cannonball tutorial](https://nasa.github.io/trick/tutorial/Tutorial) to get familiar with the basics
+3. Install PlatformIO or any IDE for STM32 firmware development
+4. Install required Python packages:
+```bash
+pip3 install pyserial
+```
+
+To build and run the simulation:
+```bash
+cd SIM_BLDC_Motor
+trick-CP
+./run.sh
+```
+
+Press **Start** in the Sim Control Panel. The bridge and display will launch automatically.
+
+To upload firmware to the STM32:
+```bash
+cd STM32_CCSDS_Receiver
+pio run --target upload
+```
+
+---
 # Results
+
+# Conclusion
