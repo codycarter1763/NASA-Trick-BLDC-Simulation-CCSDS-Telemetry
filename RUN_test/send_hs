@@ -1,0 +1,28 @@
+|L   1|2026/03/22,02:29:33.150068|cody-GS65-Stealth-9SD| |T 0|0.000000| Freeze ON. Simulation time holding at 0.000000 seconds.
+|L   1|2026/03/22,02:29:42.150055|cody-GS65-Stealth-9SD| |T 0|0.000000| Freeze OFF.
+|L   0|2026/03/22,02:29:47.156561|cody-GS65-Stealth-9SD| |T 0|5.000000| 
+     REALTIME SHUTDOWN STATS:
+     REALTIME TOTAL OVERRUNS:            0
+            ACTUAL INIT TIME:        0.191
+         ACTUAL ELAPSED TIME:       14.197
+|L   0|2026/03/22,02:29:48.643948|cody-GS65-Stealth-9SD| |T 0|5.000000| 
+SIMULATION TERMINATED IN
+  PROCESS: 0
+  ROUTINE: Executive_loop_single_thread.cpp:98
+  DIAGNOSTIC: Reached termination time
+
+              SIMULATION START TIME:        0.000
+               SIMULATION STOP TIME:        5.000
+            SIMULATION ELAPSED TIME:        5.000
+                 USER CPU TIME USED:        0.305
+               SYSTEM CPU TIME USED:        0.039
+              SIMULATION / CPU TIME:       14.530
+       INITIALIZATION USER CPU TIME:        0.177
+     INITIALIZATION SYSTEM CPU TIME:        0.012
+               SIMULATION RAM USAGE:       48.645MB
+      (External program RAM usage not included!)
+  VOLUNTARY CONTEXT SWITCHES (INIT):           10
+INVOLUNTARY CONTEXT SWITCHES (INIT):            0
+   VOLUNTARY CONTEXT SWITCHES (RUN):         2538
+ INVOLUNTARY CONTEXT SWITCHES (RUN):            1
+

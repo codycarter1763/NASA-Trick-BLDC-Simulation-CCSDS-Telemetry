@@ -1,0 +1,19 @@
+# Trick build artifacts
+build/
+S_main_*.exe
+S_sie.resource
+MONTE_RUN_test/
+RUN_test/log_*
+trick_port.txt
+
+# Python
+*.pyc
+__pycache__/
+
+# PlatformIO
+.pio/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

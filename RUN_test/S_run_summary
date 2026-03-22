@@ -1,0 +1,52 @@
+
+===============================================================================
+General:
+
+Executable called = /home/cody/trick_sims/SIM_BLDC_Motor/S_main_Linux_9.4_x86_64.exe
+Input file = RUN_test/input.py
+S_main build time = Sat Mar 21 23:47:35 2026
+Trick version = 25.0.3-beta
+
+===============================================================================
+Build time Environment:
+
+TRICK_CC = /usr/bin/gcc
+TRICK_CFLAGS =  -Imodels
+TRICK_CONVERT_SWIG_FLAGS = 
+TRICK_CPFLAGS = 
+TRICK_CXX = /usr/bin/g++
+TRICK_CXXFLAGS =  -Imodels
+TRICK_DEBUG = 0
+TRICK_EDITOR = 
+TRICK_EXEC_LINK_LIBS = -lpthread -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -L/usr/lib -lpython3.8 -lcrypt -lpthread -ldl  -lutil -lm -lm  -lpython3.8 -lcrypt -lpthread -ldl  -lutil -lm -lm    -ludunits2 -lrt -lm -ldl
+TRICK_EXT_LIB_DIRS = 
+TRICK_EXT_LIB_DIRS_OVERRIDES = 
+TRICK_FORCE_32BIT = OFF
+TRICK_GTE_EXT = 
+TRICK_HOME = /home/cody/trick
+TRICK_HOST_CPU = Linux_9.4_x86_64
+TRICK_HOST_CPU_USER_SUFFIX = 
+TRICK_HOST_TYPE = Linux
+TRICK_ICGFLAGS = 
+TRICK_ICG_COMPAT15 = 
+TRICK_ICG_EXCLUDE = 
+TRICK_ICG_IGNORE_TYPES = 
+TRICK_ICG_NOCOMMENT = 
+TRICK_LDFLAGS = 
+TRICK_MAKE = 
+TRICK_PATH = /home/cody/trick/libexec/bin
+TRICK_PRINTER_NAME = 
+TRICK_PRINT_CMD = lpr
+TRICK_PYTHON_PATH = 
+TRICK_SFLAGS = 
+TRICK_SWIG_EXCLUDE = 
+TRICK_SYSTEM_CFLAGS = -isystem/home/cody/trick/trick_source -isystem/home/cody/trick/include -isystem/home/cody/trick/include/trick/compat -DTRICK_VER=25 -DTRICK_MINOR=0 -fpic  -DUSE_ER7_UTILS_INTEGRATORS -fexceptions 
+TRICK_SYSTEM_CXXFLAGS = -isystem/home/cody/trick/trick_source -isystem/home/cody/trick/include -isystem/home/cody/trick/include/trick/compat -DTRICK_VER=25 -DTRICK_MINOR=0 -fpic  -DUSE_ER7_UTILS_INTEGRATORS 
+TRICK_SYSTEM_LDFLAGS = -Wl,--export-dynamic
+TRICK_USER_CSHRC = /home/cody/.Trick_user_cshrc
+TRICK_USER_HOME = /home/cody/trick_sims
+TRICK_USER_LINK_LIBS = 
+TRICK_USER_PROFILE = /home/cody/.Trick_user_profile
+TRICK_VER = trick_dev
+XML_CATALOG_FILES = /home/cody/trick/libexec/trick_source/data_products/DPX/XML/catalog.xml
+

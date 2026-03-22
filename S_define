@@ -1,0 +1,34 @@
+/************************TRICK HEADER*************************
+PURPOSE:
+    (S_define file for SIM_BLDC_Motor)
+LIBRARY DEPENDENCIES:
+    (
+      (bldc/src/bldc_motor_default_data.c)
+      (bldc/src/bldc_motor_init.c)
+      (bldc/src/bldc_motor_deriv.c)
+      (bldc/src/bldc_motor_integ.c)
+      (bldc/src/bldc_motor_shutdown.c)
+    )
+*************************************************************/
+#include "sim_objects/default_trick_sys.sm"
+##include "bldc/include/bldc.h"
+
+class BLDCSimObject : public Trick::SimObject {
+public:
+    BLDC_MOTOR motor;
+    BLDCSimObject() {
+        ("default_data")       bldc_motor_default_data(&motor);
+        ("initialization")     bldc_motor_init(&motor);
+        (0.001, "derivative")  bldc_motor_deriv(&motor);
+        (0.001, "integration") bldc_motor_integ(&motor);
+        ("shutdown")           bldc_motor_shutdown(&motor);
+    }
+};
+
+BLDCSimObject bldc_sim;
+
+IntegLoop dyn_integloop(0.001) bldc_sim;
+
+void create_connections() {
+    dyn_integloop.getIntegrator(Runge_Kutta_4, 3);
+}
