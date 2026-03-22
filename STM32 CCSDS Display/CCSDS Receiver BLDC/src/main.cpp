@@ -4,9 +4,11 @@
  * Date: March 2026
  * Version: 1.0.0
  * 
- * This firmware handles the data collection of the DHT11 temperature and humidity
- * sensor, the building of the space packet protocol header, and data transmission
+ * This firmware handles the data collection from a Trick BLDC simulation
+ * sensor, the decoding of the space packet protocol header, and data transmission
  * via USB.
+ * 
+ * Made for STM32F411CE (Blackpill)
  ******************************************/
 
 #include <Arduino.h>
