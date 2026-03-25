@@ -12,6 +12,7 @@ LIBRARY DEPENDENCIES:
 *************************************************************/
 #include "sim_objects/default_trick_sys.sm"
 ##include "bldc/include/bldc.h"
+#include "/home/cody/trick/share/trick/sim_objects/CivetServer.sm"
 
 class BLDCSimObject : public Trick::SimObject {
 public:

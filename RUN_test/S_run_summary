@@ -4,7 +4,7 @@ General:
 
 Executable called = /home/cody/trick_sims/SIM_BLDC_Motor/S_main_Linux_9.4_x86_64.exe
 Input file = RUN_test/input.py
-S_main build time = Sat Mar 21 23:47:35 2026
+S_main build time = Wed Mar 25 00:17:49 2026
 Trick version = 25.0.3-beta
 
 ===============================================================================
@@ -18,7 +18,7 @@ TRICK_CXX = /usr/bin/g++
 TRICK_CXXFLAGS =  -Imodels
 TRICK_DEBUG = 0
 TRICK_EDITOR = 
-TRICK_EXEC_LINK_LIBS = -lpthread -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -L/usr/lib -lpython3.8 -lcrypt -lpthread -ldl  -lutil -lm -lm  -lpython3.8 -lcrypt -lpthread -ldl  -lutil -lm -lm    -ludunits2 -lrt -lm -ldl
+TRICK_EXEC_LINK_LIBS = -lpthread -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -L/usr/lib -lpython3.8 -lcrypt -lpthread -ldl  -lutil -lm -lm  -lpython3.8 -lcrypt -lpthread -ldl  -lutil -lm -lm    -ludunits2 -lrt -lm -ldl -L/home/cody/civetweb/lib -lcivetweb -lz
 TRICK_EXT_LIB_DIRS = 
 TRICK_EXT_LIB_DIRS_OVERRIDES = 
 TRICK_FORCE_32BIT = OFF
@@ -40,8 +40,8 @@ TRICK_PRINT_CMD = lpr
 TRICK_PYTHON_PATH = 
 TRICK_SFLAGS = 
 TRICK_SWIG_EXCLUDE = 
-TRICK_SYSTEM_CFLAGS = -isystem/home/cody/trick/trick_source -isystem/home/cody/trick/include -isystem/home/cody/trick/include/trick/compat -DTRICK_VER=25 -DTRICK_MINOR=0 -fpic  -DUSE_ER7_UTILS_INTEGRATORS -fexceptions 
-TRICK_SYSTEM_CXXFLAGS = -isystem/home/cody/trick/trick_source -isystem/home/cody/trick/include -isystem/home/cody/trick/include/trick/compat -DTRICK_VER=25 -DTRICK_MINOR=0 -fpic  -DUSE_ER7_UTILS_INTEGRATORS 
+TRICK_SYSTEM_CFLAGS = -isystem/home/cody/trick/trick_source -isystem/home/cody/trick/include -isystem/home/cody/trick/include/trick/compat -DTRICK_VER=25 -DTRICK_MINOR=0 -fpic  -DUSE_ER7_UTILS_INTEGRATORS -I/home/cody/civetweb/include -DUSE_CIVETWEB -fexceptions 
+TRICK_SYSTEM_CXXFLAGS = -isystem/home/cody/trick/trick_source -isystem/home/cody/trick/include -isystem/home/cody/trick/include/trick/compat -DTRICK_VER=25 -DTRICK_MINOR=0 -fpic  -DUSE_ER7_UTILS_INTEGRATORS -I/home/cody/civetweb/include -DUSE_CIVETWEB 
 TRICK_SYSTEM_LDFLAGS = -Wl,--export-dynamic
 TRICK_USER_CSHRC = /home/cody/.Trick_user_cshrc
 TRICK_USER_HOME = /home/cody/trick_sims

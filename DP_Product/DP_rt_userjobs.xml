@@ -8,21 +8,30 @@
     <page vcells="0">
         <title>User Job Execution Times</title>
         <plot grid="yes" background_color="cornsilk2">
-            <title>JOB_bldc_sim.bldc_motor_deriv.21.02(derivative)</title>
+            <title>JOB_web.server.http_top_of_frame.21.03(top_of_frame)</title>
             <xaxis> <label>Time</label> <units>s</units> </xaxis>
             <yaxis> <label>Execution Time</label> </yaxis>
             <curve>
                 <var>sys.exec.out.time</var>
-                <var line_color="red">JOB_bldc_sim.bldc_motor_deriv.21.02(derivative)</var>
+                <var line_color="red">JOB_web.server.http_top_of_frame.21.03(top_of_frame)</var>
             </curve>
         </plot>
         <plot grid="yes" background_color="cornsilk2">
-            <title>JOB_bldc_sim.bldc_motor_integ.21.03(integration)</title>
+            <title>JOB_bldc_sim.bldc_motor_deriv.22.02(derivative)</title>
             <xaxis> <label>Time</label> <units>s</units> </xaxis>
             <yaxis> <label>Execution Time</label> </yaxis>
             <curve>
                 <var>sys.exec.out.time</var>
-                <var line_color="red">JOB_bldc_sim.bldc_motor_integ.21.03(integration)</var>
+                <var line_color="red">JOB_bldc_sim.bldc_motor_deriv.22.02(derivative)</var>
+            </curve>
+        </plot>
+        <plot grid="yes" background_color="cornsilk2">
+            <title>JOB_bldc_sim.bldc_motor_integ.22.03(integration)</title>
+            <xaxis> <label>Time</label> <units>s</units> </xaxis>
+            <yaxis> <label>Execution Time</label> </yaxis>
+            <curve>
+                <var>sys.exec.out.time</var>
+                <var line_color="red">JOB_bldc_sim.bldc_motor_integ.22.03(integration)</var>
             </curve>
         </plot>
     </page>

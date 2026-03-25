@@ -57,3 +57,9 @@ print("=================================")
 display_tcl = os.environ['HOME'] + "/trick_sims/SIM_BLDC_Motor/BLDC_Display.tcl"
 if os.path.isfile(display_tcl):
     os.system("wish " + display_tcl + " " + str(varServerPort) + " &")
+
+# Enable the web server
+web.server.enable = True
+web.server.port = 8888
+web.server.document_root = "www"
+web.server.debug = True
