@@ -1,5 +1,5 @@
 # NASA Trick BLDC Simulation With CCSDS Telemetry
-
+![IMG_6880](https://github.com/user-attachments/assets/036c3b7f-6ae6-4c69-b055-a00abeea0ac2)
 # About
 This repository builds on my NASA Trick simulation learning journey by combining a brushless DC motor simulation with a hardware telemetry pipeline using my implementation of the CCSDS Space Packet Protocol.
 
@@ -48,11 +48,9 @@ In addition, I implemented a Tcl/Tk display that connects to Trick's variable se
 # CCSDS Space Packet Protocol
 Space Packet Protocol is a standardized format used to wrap data packets that are sent between spacecraft systems. To gain more experience in Space Packet Protocol and use it to transfer useful information, CCSDS is implemented on the simulation host computer and a STM32 Blackpill microcontroller to send motor simulation data in real time over USB and displayed on an OLED display. 
 
-Each packet consists of a primary header containing packet identification and sequence control fields, and a secondary header containing the motor telemetry payload. For example shown below is what the host PC and STM32 side of the telemetry pipeline will show during transmission.
+Each packet consists of a primary header containing packet identification and sequence control fields, and a secondary header containing the motor telemetry payload. For example shown below is what the host PC side of the telemetry pipeline will show during transmission.
 
 <img width="719" height="104" alt="image" src="https://github.com/user-attachments/assets/502cf2ed-c9a1-4843-af84-e5a1d847909b" />
-
-![IMG_6880](https://github.com/user-attachments/assets/036c3b7f-6ae6-4c69-b055-a00abeea0ac2)
 
 # Combining Trick With CCSDS 
 ## Host PC Side
@@ -64,7 +62,7 @@ Adapting the decoder logic from my previous CCSDS SPP implementation, it was fai
 For the STM32 Blackpill and related processors specifically, you are able to take advantage of the floating point microarchitecture for floating point operations. This was helpful in displaying certain output variables with more precision.
 
 ### Setting PlatformIO Floating Point Build Flags
-Depending on your IDE, this process will be slightly different, but these required build flags were required to access the coproccesors. Additionally, make sure the first three build flags are called to enable I2C and USB serial communication via DFU.
+Depending on your IDE, this process will be slightly different, but these build flags were required to access the coproccesors. Additionally, make sure the first three build flags are called to enable I2C and USB serial communication via DFU.
 
 ```
 build_flags =
@@ -94,16 +92,25 @@ cd SIM_BLDC_Motor
 trick-CP
 ./run.sh
 ```
+After running ./run.sh a Tcl gui and the Trick simulation menu should appear. 
 
-Press **Start** in the Sim Control Panel. The bridge and display will launch automatically.
+To upload firmware to the STM32, open PlatformIO or any IDE, and upload main.cpp in STM32 CCSDS Display / src.
 
-To upload firmware to the STM32:
-```bash
-cd STM32_CCSDS_Receiver
-pio run --target upload
+By this point, run the command below to open the Tcl gui and the Trick simulation menu.
 ```
+./run.sh
+```
+Using the Tcl gui, all you need to do is either run the simulation with default values, or change voltage or load, and click apply for the simulation to run. If connected to STM32, the OLED display should automatically start displaying values when the simulation starts.
 
 ---
 # Results
+Below is a video of all the components running together, including starting the simulation, viewing sent data, and having it displayed on the STM32 OLED display.
+
+https://github.com/user-attachments/assets/cb94a02a-7b69-4629-97e6-624b6eae0489
+
+This is just one application for combining Trick with CCSDS hardware implementations. The potential of Trick with CCSDS is endless.
 
 # Conclusion
+This repository builds on my NASA Trick simulation learning journey by combining a brushless DC motor simulation with a hardware telemetry pipeline using my implementation of the CCSDS Space Packet Protocol. It was a very interesting project and really opens up so many possibilites with what you can do with Trick. 
+
+If you have any questions feel free to contact me about the project.
