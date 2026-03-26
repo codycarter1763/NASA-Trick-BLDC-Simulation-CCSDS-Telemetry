@@ -99,6 +99,7 @@ extern "C" {
 #include "trick/memorymanager_c_intf.h"
 #include "trick/montecarlo_c_intf.h"
 #include "trick/trick_tests.h"
+#include "bldc/httpMethods/bldc_http_handlers.h"
 #include "bldc/include/bldc.h"
 
 #ifdef __cplusplus

@@ -17,6 +17,11 @@ import _ma9557597abdbd3daf7ecce6896a576f7
 combine_cvars(all_cvars, cvar)
 cvar = None
 
+# /home/cody/trick_sims/SIM_BLDC_Motor/models/bldc/httpMethods/bldc_http_handlers.h
+import _med004e9567e72749b6d50f5dbf2a207f
+combine_cvars(all_cvars, cvar)
+cvar = None
+
 # /home/cody/trick_sims/SIM_BLDC_Motor/models/bldc/include/bldc.h
 import _m2cd2ea3140437a6e84b87f64e5b5d405
 combine_cvars(all_cvars, cvar)
@@ -24,6 +29,8 @@ cvar = None
 
 # /home/cody/trick_sims/SIM_BLDC_Motor/S_source.hh
 from ma9557597abdbd3daf7ecce6896a576f7 import *
+# /home/cody/trick_sims/SIM_BLDC_Motor/models/bldc/httpMethods/bldc_http_handlers.h
+from med004e9567e72749b6d50f5dbf2a207f import *
 # /home/cody/trick_sims/SIM_BLDC_Motor/models/bldc/include/bldc.h
 from m2cd2ea3140437a6e84b87f64e5b5d405 import *
 

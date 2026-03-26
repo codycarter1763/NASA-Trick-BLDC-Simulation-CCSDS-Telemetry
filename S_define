@@ -8,11 +8,13 @@ LIBRARY DEPENDENCIES:
       (bldc/src/bldc_motor_deriv.c)
       (bldc/src/bldc_motor_integ.c)
       (bldc/src/bldc_motor_shutdown.c)
+      (bldc/httpMethods/bldc_http_handlers.c)
     )
 *************************************************************/
 #include "sim_objects/default_trick_sys.sm"
+#include "sim_objects/CivetServer.sm"
 ##include "bldc/include/bldc.h"
-#include "/home/cody/trick/share/trick/sim_objects/CivetServer.sm"
+##include "bldc/httpMethods/bldc_http_handlers.h"
 
 class BLDCSimObject : public Trick::SimObject {
 public:
@@ -32,4 +34,11 @@ IntegLoop dyn_integloop(0.001) bldc_sim;
 
 void create_connections() {
     dyn_integloop.getIntegrator(Runge_Kutta_4, 3);
+
+    /* Give handlers access to live motor data */
+    bldc_http_set_motor(&bldc_sim.motor);
+
+    /* Register HTTP GET handlers */
+    web.server.installHTTPGEThandler("motor/data",    &handle_HTTP_GET_motor_data);
+    web.server.installHTTPGEThandler("motor/control", &handle_HTTP_GET_motor_control);
 }
