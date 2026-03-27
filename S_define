@@ -2,19 +2,22 @@
 PURPOSE:
     (S_define file for SIM_BLDC_Motor)
 LIBRARY DEPENDENCIES:
-    (
-      (bldc/src/bldc_motor_default_data.c)
-      (bldc/src/bldc_motor_init.c)
-      (bldc/src/bldc_motor_deriv.c)
-      (bldc/src/bldc_motor_integ.c)
-      (bldc/src/bldc_motor_shutdown.c)
-      (bldc/httpMethods/bldc_http_handlers.c)
-    )
+(
+  (bldc/src/bldc_motor_default_data.c)
+  (bldc/src/bldc_motor_init.c)
+  (bldc/src/bldc_motor_deriv.c)
+  (bldc/src/bldc_motor_integ.c)
+  (bldc/src/bldc_motor_shutdown.c)
+  (bldc/httpMethods/bldc_http_handlers.c)
+  (bldc/httpMethods/handle_HTTP_GET_php.cpp)
+  (bldc/logger/php_logger.c)    
+)
 *************************************************************/
 #include "sim_objects/default_trick_sys.sm"
 #include "sim_objects/CivetServer.sm"
 ##include "bldc/include/bldc.h"
 ##include "bldc/httpMethods/bldc_http_handlers.h"
+##include "bldc/httpMethods/handle_HTTP_GET_php.h"
 
 class BLDCSimObject : public Trick::SimObject {
 public:
@@ -41,4 +44,7 @@ void create_connections() {
     /* Register HTTP GET handlers */
     web.server.installHTTPGEThandler("motor/data",    &handle_HTTP_GET_motor_data);
     web.server.installHTTPGEThandler("motor/control", &handle_HTTP_GET_motor_control);
+
+    printf("REGISTERING PHP HANDLER\n");
+    web.server.installHTTPGEThandler("php", &handle_HTTP_GET_php);
 }

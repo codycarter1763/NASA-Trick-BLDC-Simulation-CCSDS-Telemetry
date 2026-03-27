@@ -3,6 +3,7 @@ PURPOSE: (Integrate BLDC motor state variables via Trick)
 **************************************************************************/
 #include "../include/bldc.h"
 #include "/home/cody/trick/include/trick/integrator_c_intf.h"
+#include "../logger/php_logger.h"
 
 int bldc_motor_integ(BLDC_MOTOR* M) {
     int trick_ret;
@@ -38,6 +39,11 @@ int bldc_motor_integ(BLDC_MOTOR* M) {
         M->stall = 1;
         M->stallTime = M->time;
     }
+    
+    static int counter = 0;
 
+    if (counter++ % 50 == 0) {
+        log_to_php(M);
+    }   
     return trick_ret;
 }

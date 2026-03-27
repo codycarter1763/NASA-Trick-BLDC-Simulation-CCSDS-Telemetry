@@ -31,6 +31,24 @@ set sim_exe [file tail [lindex $sim_exe_list 0]]
 # ─────────────────────────────────────────────
 # 3.0 Procs
 # ─────────────────────────────────────────────
+proc get_current_run {} {
+    set file "/home/cody/trick_sims/SIM_BLDC_Motor/www/current_run.txt"
+
+    if {![file exists $file]} {
+        return 0
+    }
+
+    set f [open $file r]
+    set val [gets $f]
+    close $f
+
+    if {$val eq ""} {
+        return 0
+    }
+
+    return $val
+}
+
 proc safe_send {msg} {
     global sock
     catch {puts $sock $msg}
@@ -102,7 +120,7 @@ subscribe_vars
 # 6.0 GUI
 # ─────────────────────────────────────────────
 wm title . "BLDC Motor Display"
-wm geometry . 600x800
+wm geometry . 600x900
 wm protocol . WM_DELETE_WINDOW { cleanup }
 . configure -bg #1e1e1e
 
@@ -110,6 +128,16 @@ wm protocol . WM_DELETE_WINDOW { cleanup }
 label .title -text "Castle Creations 2200Kv Motor Performance" \
     -font {Helvetica 16 bold} -fg white -bg #1e1e1e
 pack .title -fill x -pady 10
+
+set current_run [get_current_run]
+
+label .runlabel \
+    -text "Current Run: $current_run" \
+    -font {Helvetica 12 bold} \
+    -fg #00ffcc \
+    -bg #1e1e1e
+
+pack .runlabel -pady 5
 
 # ── Readout frame ──
 frame .readout -bg #2b2b2b -relief raised -bd 2
@@ -141,6 +169,36 @@ make_row .readout "Torque"   torque  "N.m"
 make_row .readout "Back-EMF" backemf "V"
 make_row .readout "Power"    power   "W"
 make_row .readout "Voltage"  voltage "V"
+
+proc increment_run_id {} {
+    set file "/home/cody/trick_sims/SIM_BLDC_Motor/www/current_run.txt"
+
+    # If file doesn't exist, create it with 0
+    if {![file exists $file]} {
+        set f [open $file w]
+        puts $f 0
+        close $f
+    }
+
+    # Read current value
+    set f [open $file r]
+    set val [gets $f]
+    close $f
+
+    if {$val eq ""} {
+        set val 0
+    }
+
+    # Increment
+    set val [expr {$val + 1}]
+
+    # Write back
+    set f [open $file w]
+    puts $f $val
+    close $f
+
+    return $val
+}
 
 # ── Control frame ──
 frame .control -bg #2b2b2b -relief raised -bd 2
@@ -216,7 +274,11 @@ button .buttons.inner.start \
     -text "Start" \
     -bg #51cf66 -fg black \
     -font {Helvetica 11 bold} \
-    -command { safe_send "trick.exec_run()" }
+    -command {
+        set run_id [increment_run_id]
+        puts "Starting run $run_id"
+        safe_send "trick.exec_run()"
+    }   
 pack .buttons.inner.start -side left -padx 5
 
 button .buttons.inner.freeze \
@@ -235,3 +297,218 @@ button .buttons.inner.shutdown \
         exec pkill wish
     }
 pack .buttons.inner.shutdown -side left -padx 5
+
+# ─────────────────────────────────────────────
+# PLOT + DB LAYER (NON-INTRUSIVE ADDITION)
+# ─────────────────────────────────────────────
+
+# Data buffers
+set selected_var "rpm"
+set selected_run 1
+
+set time_data {}
+set rpm_data {}
+set current_data {}
+set power_data {}
+set bemf_data {}
+
+# ─── SAFE DRAW FUNCTION ───
+proc draw_plot {} {
+    global selected_var rpm_data current_data power_data bemf_data
+
+    if {![winfo exists .plot]} { return }
+
+    .plot delete all
+
+    switch $selected_var {
+        "rpm"     { set data $rpm_data }
+        "current" { set data $current_data }
+        "power"   { set data $power_data }
+        "bemf"    { set data $bemf_data }
+        default { return }
+    }
+
+    set n [llength $data]
+    if {$n < 2} return
+
+    set w 550
+    set h 250
+
+    set x_margin 20
+    set y_margin 20
+
+    set plot_w [expr {$w - 2*$x_margin}]
+    set plot_h [expr {$h - 2*$y_margin}]
+
+    set max_val [tcl::mathfunc::max {*}$data]
+    set min_val [tcl::mathfunc::min {*}$data]
+
+    if {$max_val == $min_val} {
+        set max_val [expr {$max_val + 1}]
+    }
+
+    for {set i 1} {$i < $n} {incr i} {
+        set v1 [lindex $data [expr {$i-1}]]
+        set v2 [lindex $data $i]
+
+        set x1 [expr {$x_margin + ($i-1) * $plot_w / $n}]
+        set x2 [expr {$x_margin + $i * $plot_w / $n}]
+
+        set y1 [expr {$y_margin + $plot_h - (($v1 - $min_val) / ($max_val - $min_val)) * $plot_h}]
+        set y2 [expr {$y_margin + $plot_h - (($v2 - $min_val) / ($max_val - $min_val)) * $plot_h}]
+
+        .plot create line $x1 $y1 $x2 $y2 -fill cyan -width 2
+    }
+}
+
+# ─── DB PLOT FUNCTION ───
+proc plot_from_db {} {
+    global selected_var selected_run
+
+    set cmd "php /home/cody/trick_sims/SIM_BLDC_Motor/www/read_db.php $selected_var $selected_run"
+
+    if {[catch {exec sh -c $cmd} data]} {
+        puts "DB ERROR: $data"
+        return
+    }
+
+    set values {}
+    foreach line [split $data "\n"] {
+        if {$line ne ""} {
+            lappend values $line
+        }
+    }
+
+    if {![winfo exists .plot]} { return }
+
+    .plot delete all
+
+    set n [llength $values]
+    if {$n < 2} return
+
+    set w 550
+    set h 250
+
+    set x_margin 20
+    set y_margin 20
+
+    set plot_w [expr {$w - 2*$x_margin}]
+    set plot_h [expr {$h - 2*$y_margin}]
+
+    set max_val [tcl::mathfunc::max {*}$values]
+    set min_val [tcl::mathfunc::min {*}$values]
+
+    if {$max_val == $min_val} {
+        set max_val [expr {$max_val + 1}]
+    }
+
+    for {set i 1} {$i < $n} {incr i} {
+        set v1 [lindex $values [expr {$i-1}]]
+        set v2 [lindex $values $i]
+
+        set x1 [expr {$x_margin + ($i-1) * $plot_w / $n}]
+        set x2 [expr {$x_margin + $i * $plot_w / $n}]
+
+        set y1 [expr {$y_margin + $plot_h - (($v1 - $min_val) / ($max_val - $min_val)) * $plot_h}]
+        set y2 [expr {$y_margin + $plot_h - (($v2 - $min_val) / ($max_val - $min_val)) * $plot_h}]
+
+        .plot create line $x1 $y1 $x2 $y2 -fill yellow -width 2
+    }
+}
+
+# ─────────────────────────────────────────────
+# PATCH: hook into your existing handle_data
+# ─────────────────────────────────────────────
+rename handle_data handle_data_original
+
+proc handle_data {} {
+    global sock
+    global time_data rpm_data current_data power_data bemf_data
+
+    if {[catch {gets $sock line} err] || [eof $sock]} {
+        catch {fileevent $sock readable {}}
+        catch {close $sock}
+        return
+    }
+
+    if {$line ne ""} {
+        set fields [split $line "\t"]
+
+        if {[lindex $fields 0] == 0 && [llength $fields] == 7} {
+
+            set rpm   [lindex $fields 1]
+            set cur   [lindex $fields 2]
+            set tq    [lindex $fields 3]
+            set bemf  [lindex $fields 4]
+            set pwr   [lindex $fields 5]
+            set volt  [lindex $fields 6]
+
+            # original UI update
+            .readout.rpm.value     configure -text [format "%.1f" $rpm]
+            .readout.current.value configure -text [format "%.3f" $cur]
+            .readout.torque.value  configure -text [format "%.4f" $tq]
+            .readout.backemf.value configure -text [format "%.3f" $bemf]
+            .readout.power.value   configure -text [format "%.2f" $pwr]
+            .readout.voltage.value configure -text [format "%.1f" $volt]
+
+            # store for plotting
+            lappend time_data [clock milliseconds]
+            lappend rpm_data $rpm
+            lappend current_data $cur
+            lappend power_data $pwr
+            lappend bemf_data $bemf
+
+            if {[llength $time_data] > 300} {
+                set time_data     [lrange $time_data end-300 end]
+                set rpm_data      [lrange $rpm_data end-300 end]
+                set current_data  [lrange $current_data end-300 end]
+                set power_data    [lrange $power_data end-300 end]
+                set bemf_data     [lrange $bemf_data end-300 end]
+            }
+
+            draw_plot
+        }
+    }
+}
+
+# rebind socket to new handler
+fileevent $sock readable handle_data
+
+# ─────────────────────────────────────────────
+# UI ADDITION (BOTTOM ONLY)
+# ─────────────────────────────────────────────
+
+frame .plotframe -bg #1e1e1e
+pack .plotframe -fill both -expand true -padx 10 -pady 10
+
+frame .plotctrl -bg #2b2b2b
+pack .plotctrl -fill x -pady 5
+
+ttk::combobox .plotctrl.combo \
+    -values {"rpm" "current" "power" "bemf"} \
+    -textvariable selected_var \
+    -state readonly
+pack .plotctrl.combo -side left -padx 5
+
+entry .plotctrl.run -textvariable selected_run -width 5
+pack .plotctrl.run -side left -padx 5
+
+button .plotctrl.db \
+    -text "Plot DB" \
+    -command plot_from_db
+pack .plotctrl.db -side left -padx 5
+
+button .plotctrl.clear \
+    -text "Clear" \
+    -command {
+        set ::time_data {}
+        set ::rpm_data {}
+        set ::current_data {}
+        set ::power_data {}
+        set ::bemf_data {}
+        .plot delete all
+    }
+pack .plotctrl.clear -side left -padx 5
+
+canvas .plot -width 550 -height 250 -bg black
+pack .plot -pady 5

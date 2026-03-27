@@ -100,6 +100,7 @@ extern "C" {
 #include "trick/montecarlo_c_intf.h"
 #include "trick/trick_tests.h"
 #include "bldc/httpMethods/bldc_http_handlers.h"
+#include "bldc/httpMethods/handle_HTTP_GET_php.h"
 #include "bldc/include/bldc.h"
 
 #ifdef __cplusplus

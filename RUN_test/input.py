@@ -26,7 +26,7 @@ dr = trick.DRBinary("bldc_data")
 dr.freq = trick.DR_Always
 dr.add_variable("bldc_sim.motor.time")
 dr.add_variable("bldc_sim.motor.current")
-dr.add_variable("bldc_sim.motor.omega")
+dr.add_variable("bldc_sim.motor.omega") 
 dr.add_variable("bldc_sim.motor.theta")
 dr.add_variable("bldc_sim.motor.torque")
 dr.add_variable("bldc_sim.motor.back_emf")
