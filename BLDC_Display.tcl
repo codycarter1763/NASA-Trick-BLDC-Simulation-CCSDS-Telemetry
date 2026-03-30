@@ -1,5 +1,7 @@
 #!/usr/bin/env wish
 
+package require Plotchart
+
 # Force kill on window close
 proc force_exit {} {
     catch {exec kill [pid]}
@@ -26,7 +28,7 @@ if {[llength $sim_exe_list] == 0} {
     puts "Error: No S_main_*.exe found in $sim_dir"
     exit
 }
-set sim_exe [file tail [lindex $sim_exe_list 0]]
+set sim_exe [file tail [lindex $sim_exe_list 0]]                
 
 # ─────────────────────────────────────────────
 # 3.0 Procs
@@ -58,12 +60,14 @@ proc subscribe_vars {} {
     global sock
     safe_send "trick.var_pause()"
     safe_send "trick.var_ascii()"
+    safe_send "trick.var_add(\"bldc_sim.motor.time\")"
     safe_send "trick.var_add(\"bldc_sim.motor.rpm\")"
     safe_send "trick.var_add(\"bldc_sim.motor.current\")"
     safe_send "trick.var_add(\"bldc_sim.motor.torque\")"
     safe_send "trick.var_add(\"bldc_sim.motor.back_emf\")"
     safe_send "trick.var_add(\"bldc_sim.motor.power\")"
     safe_send "trick.var_add(\"bldc_sim.motor.voltage\")"
+
     safe_send "trick.var_cycle(0.1)"
     safe_send "trick.var_unpause()"
 }
@@ -83,30 +87,7 @@ proc restart_sim {} {
     exec pkill wish
 }
 
-# ─────────────────────────────────────────────
-# 4.0 Async socket read handler
-# ─────────────────────────────────────────────
-proc handle_data {} {
-    global sock
 
-    if {[catch {gets $sock line} err] || [eof $sock]} {
-        catch {fileevent $sock readable {}}
-        catch {close $sock}
-        return
-    }
-
-    if {$line ne ""} {
-        set fields [split $line "\t"]
-        if {[lindex $fields 0] == 0 && [llength $fields] == 7} {
-            .readout.rpm.value     configure -text [format "%.1f"  [lindex $fields 1]]
-            .readout.current.value configure -text [format "%.3f"  [lindex $fields 2]]
-            .readout.torque.value  configure -text [format "%.4f"  [lindex $fields 3]]
-            .readout.backemf.value configure -text [format "%.3f"  [lindex $fields 4]]
-            .readout.power.value   configure -text [format "%.2f"  [lindex $fields 5]]
-            .readout.voltage.value configure -text [format "%.1f"  [lindex $fields 6]]
-        }
-    }
-}
 
 # ─────────────────────────────────────────────
 # 5.0 Connect socket
@@ -129,7 +110,7 @@ label .title -text "Castle Creations 2200Kv Motor Performance" \
     -font {Helvetica 16 bold} -fg white -bg #1e1e1e
 pack .title -fill x -pady 10
 
-set current_run [get_current_run]
+set current_run [expr {[get_current_run] + 1}]
 
 label .runlabel \
     -text "Current Run: $current_run" \
@@ -312,58 +293,184 @@ set current_data {}
 set power_data {}
 set bemf_data {}
 
-# ─── SAFE DRAW FUNCTION ───
+proc get_fixed_range {var} {
+    switch $var {
+        "rpm"     { return {0 50000} }
+        "current" { return {0 100} }
+        "power"   { return {0 2000} }
+        "bemf"    { return {0 60} }
+        default   { return {0 1} }
+    }
+}
+
 proc draw_plot {} {
-    global selected_var rpm_data current_data power_data bemf_data
+    global selected_var
+    global time_data rpm_data current_data power_data bemf_data
+    global plot
 
     if {![winfo exists .plot]} { return }
 
     .plot delete all
 
+    # Select dataset
     switch $selected_var {
         "rpm"     { set data $rpm_data }
         "current" { set data $current_data }
         "power"   { set data $power_data }
         "bemf"    { set data $bemf_data }
-        default { return }
+        default   { return }
     }
 
     set n [llength $data]
     if {$n < 2} return
 
-    set w 550
-    set h 250
+    # X = time
+    set t_start [lindex $time_data 0]
+    set t_end   [lindex $time_data end]
 
-    set x_margin 20
-    set y_margin 20
+    if {$t_end <= $t_start} {
+        set t_end [expr {$t_start + 1}]
+    }
 
-    set plot_w [expr {$w - 2*$x_margin}]
+    # ─── Y AXIS (FIXED) ───
+    set raw_max [tcl::mathfunc::max {*}$data]
+    set raw_min [tcl::mathfunc::min {*}$data]
+
+    if {$raw_min > 0} { set raw_min 0 }
+
+    if {$raw_max == $raw_min} {
+        set raw_max [expr {$raw_min + 1}]
+    }
+
+    set range   [expr {$raw_max - $raw_min}]
+    set padding [expr {$range * 0.1}]
+
+    set min_val [expr {$raw_min - $padding * 0.2}]
+    set max_val [expr {$raw_max + $padding}]
+    # ─────────────────────
+
+    # Create plot
+    set plot [::Plotchart::createXYPlot .plot \
+        [list $t_start $t_end [expr {($t_end-$t_start)/5.0}]] \
+        [list $min_val $max_val [expr {($max_val-$min_val)/5.0}]]
+    ]
+
+    $plot yconfig -format "%.0f"
+
+    $plot dataconfig series1 -colour cyan
+
+    # Plot data
+    for {set i 0} {$i < $n} {incr i} {
+        set t [lindex $time_data $i]
+        set v [lindex $data $i]
+        $plot plot series1 $t $v
+    }
+}
+
+proc draw_axis {canvas w h x_margin y_margin min_val max_val var_label {sample_count 0}} {
+    global time_data
+
     set plot_h [expr {$h - 2*$y_margin}]
+    set plot_w [expr {$w - 2*$x_margin}]
+    set num_ticks 5
 
-    set max_val [tcl::mathfunc::max {*}$data]
-    set min_val [tcl::mathfunc::min {*}$data]
+    # ── Y-axis ──
+    for {set i 0} {$i <= $num_ticks} {incr i} {
+        set frac [expr {double($i) / $num_ticks}]
+        set val  [expr {$min_val + $frac * ($max_val - $min_val)}]
+        set y    [expr {$y_margin + $plot_h - $frac * $plot_h}]
 
-    if {$max_val == $min_val} {
-        set max_val [expr {$max_val + 1}]
+        $canvas create line \
+            $x_margin [expr {int($y)}] \
+            [expr {$x_margin + 5}] [expr {int($y)}] \
+            -fill #888888
+
+        $canvas create text \
+            [expr {$x_margin - 2}] [expr {int($y)}] \
+            -text [format "%.1f" $val] \
+            -fill #aaaaaa \
+            -anchor e \
+            -font {Helvetica 8}
     }
 
-    for {set i 1} {$i < $n} {incr i} {
-        set v1 [lindex $data [expr {$i-1}]]
-        set v2 [lindex $data $i]
+    # ── X-axis ──
+    if {$sample_count > 0} {
 
-        set x1 [expr {$x_margin + ($i-1) * $plot_w / $n}]
-        set x2 [expr {$x_margin + $i * $plot_w / $n}]
+        # DB mode (time from samples)
+        set dt 0.1
 
-        set y1 [expr {$y_margin + $plot_h - (($v1 - $min_val) / ($max_val - $min_val)) * $plot_h}]
-        set y2 [expr {$y_margin + $plot_h - (($v2 - $min_val) / ($max_val - $min_val)) * $plot_h}]
+        for {set i 0} {$i <= 5} {incr i} {
+            set frac   [expr {double($i) / 5}]
+            set x      [expr {$x_margin + int($frac * $plot_w)}]
+            set sample [expr {int($frac * $sample_count)}]
+            set t      [expr {$sample * $dt}]
 
-        .plot create line $x1 $y1 $x2 $y2 -fill cyan -width 2
+            $canvas create line \
+                $x [expr {$y_margin + $plot_h}] \
+                $x [expr {$y_margin + $plot_h + 5}] \
+                -fill #888888
+
+            $canvas create text \
+                $x [expr {$y_margin + $plot_h + 8}] \
+                -text [format "%.1fs" $t] \
+                -fill #aaaaaa \
+                -anchor n \
+                -font {Helvetica 8}
+        }
+
+    } elseif {[llength $time_data] >= 2} {
+
+        # Live time axis
+        set t_start   [expr {[lindex $time_data 0] }]
+        set t_end     [expr {[lindex $time_data end] }]
+        set t_elapsed [expr {$t_end - $t_start}]
+        set t_window  30.0
+
+        if {$t_elapsed < $t_window} {
+            # 🔥 FIX: grow from 0 → current time
+            set x_min 0.0
+            set x_max $t_elapsed
+
+            # Prevent collapse at startup
+            if {$x_max < 1.0} { set x_max 1.0 }
+
+        } else {
+            # 🔥 Scroll window after full
+            set x_max $t_elapsed
+            set x_min [expr {$t_elapsed - $t_window}]
+        }
+
+        for {set i 0} {$i <= 5} {incr i} {
+            set frac [expr {double($i) / 5}]
+            set x    [expr {$x_margin + int($frac * $plot_w)}]
+            set t    [expr {$x_min + $frac * ($x_max - $x_min)}]
+
+            $canvas create line \
+                $x [expr {$y_margin + $plot_h}] \
+                $x [expr {$y_margin + $plot_h + 5}] \
+                -fill #888888
+
+            $canvas create text \
+                $x [expr {$y_margin + $plot_h + 8}] \
+                -text [format "%.1fs" $t] \
+                -fill #aaaaaa \
+                -anchor n \
+                -font {Helvetica 8}
+        }
     }
+
+    # Y-axis label
+    $canvas create text \
+        15 [expr {$h / 2}] \
+        -text $var_label \
+        -fill #00bfff \
+        -anchor w \
+        -font {Helvetica 9 bold}
 }
 
 # ─── DB PLOT FUNCTION ───
 proc plot_from_db {} {
-    global selected_var selected_run
+    global selected_var selected_run plot
 
     set cmd "php /home/cody/trick_sims/SIM_BLDC_Motor/www/read_db.php $selected_var $selected_run"
 
@@ -374,52 +481,38 @@ proc plot_from_db {} {
 
     set values {}
     foreach line [split $data "\n"] {
-        if {$line ne ""} {
-            lappend values $line
-        }
+        if {$line ne ""} { lappend values $line }
     }
-
-    if {![winfo exists .plot]} { return }
-
-    .plot delete all
 
     set n [llength $values]
     if {$n < 2} return
 
-    set w 550
-    set h 250
+    .plot delete all
 
-    set x_margin 20
-    set y_margin 20
+    # Fixed X axis (samples)
+    set plot [::Plotchart::createXYPlot .plot \
+        {0 300 50} \
+        [get_fixed_range $selected_var]
+    ]
 
-    set plot_w [expr {$w - 2*$x_margin}]
-    set plot_h [expr {$h - 2*$y_margin}]
-
-    set max_val [tcl::mathfunc::max {*}$values]
-    set min_val [tcl::mathfunc::min {*}$values]
-
-    if {$max_val == $min_val} {
-        set max_val [expr {$max_val + 1}]
-    }
-
-    for {set i 1} {$i < $n} {incr i} {
-        set v1 [lindex $values [expr {$i-1}]]
-        set v2 [lindex $values $i]
-
-        set x1 [expr {$x_margin + ($i-1) * $plot_w / $n}]
-        set x2 [expr {$x_margin + $i * $plot_w / $n}]
-
-        set y1 [expr {$y_margin + $plot_h - (($v1 - $min_val) / ($max_val - $min_val)) * $plot_h}]
-        set y2 [expr {$y_margin + $plot_h - (($v2 - $min_val) / ($max_val - $min_val)) * $plot_h}]
-
-        .plot create line $x1 $y1 $x2 $y2 -fill yellow -width 2
+    for {set i 0} {$i < $n} {incr i} {
+        $plot plot series1 $i [lindex $values $i]
     }
 }
 
-# ─────────────────────────────────────────────
-# PATCH: hook into your existing handle_data
-# ─────────────────────────────────────────────
-rename handle_data handle_data_original
+proc safe_double {val} {
+    set val [string trim $val]
+
+    if {$val eq ""} {
+        return 0.0
+    }
+
+    if {[string is double -strict $val]} {
+        return [expr {double($val)}]
+    }
+
+    return 0.0
+}
 
 proc handle_data {} {
     global sock
@@ -431,44 +524,48 @@ proc handle_data {} {
         return
     }
 
-    if {$line ne ""} {
-        set fields [split $line "\t"]
+    if {$line eq ""} { return }
 
-        if {[lindex $fields 0] == 0 && [llength $fields] == 7} {
+    set fields [split $line "\t"]
 
-            set rpm   [lindex $fields 1]
-            set cur   [lindex $fields 2]
-            set tq    [lindex $fields 3]
-            set bemf  [lindex $fields 4]
-            set pwr   [lindex $fields 5]
-            set volt  [lindex $fields 6]
-
-            # original UI update
-            .readout.rpm.value     configure -text [format "%.1f" $rpm]
-            .readout.current.value configure -text [format "%.3f" $cur]
-            .readout.torque.value  configure -text [format "%.4f" $tq]
-            .readout.backemf.value configure -text [format "%.3f" $bemf]
-            .readout.power.value   configure -text [format "%.2f" $pwr]
-            .readout.voltage.value configure -text [format "%.1f" $volt]
-
-            # store for plotting
-            lappend time_data [clock milliseconds]
-            lappend rpm_data $rpm
-            lappend current_data $cur
-            lappend power_data $pwr
-            lappend bemf_data $bemf
-
-            if {[llength $time_data] > 300} {
-                set time_data     [lrange $time_data end-300 end]
-                set rpm_data      [lrange $rpm_data end-300 end]
-                set current_data  [lrange $current_data end-300 end]
-                set power_data    [lrange $power_data end-300 end]
-                set bemf_data     [lrange $bemf_data end-300 end]
-            }
-
-            draw_plot
-        }
+    # Ensure correct format
+    if {[llength $fields] != 8 || [lindex $fields 0] != 0} {
+        return
     }
+
+    set sim_time [safe_double [string trim [lindex $fields 1]]]
+    set rpm      [safe_double [string trim [lindex $fields 2]]]
+    set cur      [safe_double [string trim [lindex $fields 3]]]
+    set tq       [safe_double [string trim [lindex $fields 4]]]
+    set bemf     [safe_double [string trim [lindex $fields 5]]]
+    set pwr      [safe_double [string trim [lindex $fields 6]]]
+    set volt     [safe_double [string trim [lindex $fields 7]]]
+
+    # UI update (safe now)
+    .readout.rpm.value     configure -text [format "%.1f" $rpm]
+    .readout.current.value configure -text [format "%.3f" $cur]
+    .readout.torque.value  configure -text [format "%.4f" $tq]
+    .readout.backemf.value configure -text [format "%.3f" $bemf]
+    .readout.power.value   configure -text [format "%.2f" $pwr]
+    .readout.voltage.value configure -text [format "%.1f" $volt]
+
+    # Store numeric values only
+    lappend time_data $sim_time
+    lappend rpm_data $rpm
+    lappend current_data $cur
+    lappend power_data $pwr
+    lappend bemf_data $bemf
+
+    # Limit buffer
+    if {[llength $time_data] > 300} {
+        set time_data     [lrange $time_data end-300 end]
+        set rpm_data      [lrange $rpm_data end-300 end]
+        set current_data  [lrange $current_data end-300 end]
+        set power_data    [lrange $power_data end-300 end]
+        set bemf_data     [lrange $bemf_data end-300 end]
+    }
+
+    draw_plot
 }
 
 # rebind socket to new handler
