@@ -40,10 +40,11 @@ int bldc_motor_integ(BLDC_MOTOR* M) {
         M->stallTime = M->time;
     }
     
-    static int counter = 0;
 
+    static int counter = 0;
     if (counter++ % 50 == 0) {
         log_to_php(M);
-    }   
+    }
+
     return trick_ret;
 }

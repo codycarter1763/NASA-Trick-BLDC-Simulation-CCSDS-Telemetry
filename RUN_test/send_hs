@@ -1,40 +1,12 @@
-|L  10|2026/03/30,17:00:59.452309|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: Debug logging is enabled.
-|L   1|2026/03/30,17:00:59.452367|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: Document root "www" exists.
-|L   1|2026/03/30,17:00:59.452385|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: SSL is not enabled. To enable put "web.server.ssl_enable = True" in your input file.
-|L  10|2026/03/30,17:00:59.452399|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: Starting webserver with the following options:
-|L  10|2026/03/30,17:00:59.452428|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: 	listening_ports = 8888
-|L  10|2026/03/30,17:00:59.452439|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: 	ssl_certificate = ~/.ssl/server.pem
-|L  10|2026/03/30,17:00:59.452462|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: 	document_root = www
-|L  10|2026/03/30,17:00:59.452470|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: 	enable_directory_listing = yes
-|L  10|2026/03/30,17:00:59.452505|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: 	error_log_file = civet_server_error.log
-|L   1|2026/03/30,17:00:59.452589|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: Listening on port. 8888
-|L   1|2026/03/30,17:00:59.452636|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: Document root = "www."
-|L   1|2026/03/30,17:00:59.453765|cody-GS65-Stealth-9SD| |T 0|0.000000| Freeze ON. Simulation time holding at 0.000000 seconds.
-|L   1|2026/03/30,17:01:21.453823|cody-GS65-Stealth-9SD| |T 0|0.000000| Freeze OFF.
-|L   1|2026/03/30,17:01:26.454111|cody-GS65-Stealth-9SD| |T 0|5.000000| Trick Webserver: Shutting down on port 8888.
-|L   0|2026/03/30,17:01:26.480482|cody-GS65-Stealth-9SD| |T 0|5.000000| 
-     REALTIME SHUTDOWN STATS:
-     REALTIME TOTAL OVERRUNS:            0
-            ACTUAL INIT TIME:        0.212
-         ACTUAL ELAPSED TIME:       27.239
-|L   0|2026/03/30,17:01:27.018689|cody-GS65-Stealth-9SD| |T 0|5.000000| 
-SIMULATION TERMINATED IN
-  PROCESS: 0
-  ROUTINE: Executive_loop_single_thread.cpp:98
-  DIAGNOSTIC: Reached termination time
-
-              SIMULATION START TIME:        0.000
-               SIMULATION STOP TIME:        5.000
-            SIMULATION ELAPSED TIME:        5.000
-                 USER CPU TIME USED:        0.355
-               SYSTEM CPU TIME USED:        0.101
-              SIMULATION / CPU TIME:       10.954
-       INITIALIZATION USER CPU TIME:        0.190
-     INITIALIZATION SYSTEM CPU TIME:        0.019
-               SIMULATION RAM USAGE:       49.195MB
-      (External program RAM usage not included!)
-  VOLUNTARY CONTEXT SWITCHES (INIT):           12
-INVOLUNTARY CONTEXT SWITCHES (INIT):            2
-   VOLUNTARY CONTEXT SWITCHES (RUN):         3761
- INVOLUNTARY CONTEXT SWITCHES (RUN):            5
-
+|L  10|2026/04/01,00:47:25.714748|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: Debug logging is enabled.
+|L   1|2026/04/01,00:47:25.714793|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: Document root "www" exists.
+|L   1|2026/04/01,00:47:25.714850|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: SSL is not enabled. To enable put "web.server.ssl_enable = True" in your input file.
+|L  10|2026/04/01,00:47:25.714877|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: Starting webserver with the following options:
+|L  10|2026/04/01,00:47:25.714906|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: 	listening_ports = 8888
+|L  10|2026/04/01,00:47:25.714931|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: 	ssl_certificate = ~/.ssl/server.pem
+|L  10|2026/04/01,00:47:25.714961|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: 	document_root = www
+|L  10|2026/04/01,00:47:25.714974|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: 	enable_directory_listing = yes
+|L  10|2026/04/01,00:47:25.714987|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: 	error_log_file = civet_server_error.log
+|L   1|2026/04/01,00:47:25.716413|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: Listening on port. 8888
+|L   1|2026/04/01,00:47:25.716440|cody-GS65-Stealth-9SD| |T 0|0.000000| Trick Webserver: Document root = "www."
+|L   1|2026/04/01,00:47:25.719812|cody-GS65-Stealth-9SD| |T 0|0.000000| Freeze ON. Simulation time holding at 0.000000 seconds.

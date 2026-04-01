@@ -23,6 +23,7 @@ set port [lindex $argv 0]
 # 2.0 Sim path — portable
 # ─────────────────────────────────────────────
 set sim_dir [file normalize [file dirname [info script]]]
+set db_path [file join $sim_dir "www" "motor.db"]
 set sim_exe_list [glob -nocomplain $sim_dir/S_main_*.exe]
 if {[llength $sim_exe_list] == 0} {
     puts "Error: No S_main_*.exe found in $sim_dir"
@@ -256,10 +257,12 @@ button .buttons.inner.start \
     -bg #51cf66 -fg black \
     -font {Helvetica 11 bold} \
     -command {
+        set ::db_plot_active 0
+        .plot delete all
         set run_id [increment_run_id]
         puts "Starting run $run_id"
         safe_send "trick.exec_run()"
-    }   
+    }
 pack .buttons.inner.start -side left -padx 5
 
 button .buttons.inner.freeze \
@@ -296,23 +299,23 @@ set bemf_data {}
 proc get_fixed_range {var} {
     switch $var {
         "rpm"     { return {0 50000} }
-        "current" { return {0 100} }
-        "power"   { return {0 2000} }
-        "bemf"    { return {0 60} }
+        "current" { return {0 1000} }
+        "power"   { return {0 20000} }
+        "bemf"    { return {0 40} }
         default   { return {0 1} }
     }
 }
 
 proc draw_plot {} {
-    global selected_var
+    global selected_var db_plot_active
     global time_data rpm_data current_data power_data bemf_data
     global plot
 
+    if {$db_plot_active} { return }
     if {![winfo exists .plot]} { return }
 
     .plot delete all
 
-    # Select dataset
     switch $selected_var {
         "rpm"     { set data $rpm_data }
         "current" { set data $current_data }
@@ -324,46 +327,28 @@ proc draw_plot {} {
     set n [llength $data]
     if {$n < 2} return
 
-    # X = time
     set t_start [lindex $time_data 0]
     set t_end   [lindex $time_data end]
+    if {$t_end <= $t_start} { set t_end [expr {$t_start + 1}] }
 
-    if {$t_end <= $t_start} {
-        set t_end [expr {$t_start + 1}]
-    }
+    # Use same fixed ranges as DB plot
+    set yrange [get_fixed_range $selected_var]
+    set y_min  [lindex $yrange 0]
+    set y_max  [lindex $yrange 1]
+    set y_step [expr {($y_max - $y_min) / 5.0}]
+    set x_step [expr {($t_end - $t_start) / 5.0}]
 
-    # ─── Y AXIS (FIXED) ───
-    set raw_max [tcl::mathfunc::max {*}$data]
-    set raw_min [tcl::mathfunc::min {*}$data]
-
-    if {$raw_min > 0} { set raw_min 0 }
-
-    if {$raw_max == $raw_min} {
-        set raw_max [expr {$raw_min + 1}]
-    }
-
-    set range   [expr {$raw_max - $raw_min}]
-    set padding [expr {$range * 0.1}]
-
-    set min_val [expr {$raw_min - $padding * 0.2}]
-    set max_val [expr {$raw_max + $padding}]
-    # ─────────────────────
-
-    # Create plot
     set plot [::Plotchart::createXYPlot .plot \
-        [list $t_start $t_end [expr {($t_end-$t_start)/5.0}]] \
-        [list $min_val $max_val [expr {($max_val-$min_val)/5.0}]]
+        [list $t_start $t_end $x_step] \
+        [list $y_min   $y_max $y_step] \
     ]
 
-    $plot yconfig -format "%.0f"
-
     $plot dataconfig series1 -colour cyan
+    $plot yconfig -format "%.0f"
+    $plot xconfig -format "%.2f"
 
-    # Plot data
     for {set i 0} {$i < $n} {incr i} {
-        set t [lindex $time_data $i]
-        set v [lindex $data $i]
-        $plot plot series1 $t $v
+        $plot plot series1 [lindex $time_data $i] [lindex $data $i]
     }
 }
 
@@ -468,35 +453,84 @@ proc draw_axis {canvas w h x_margin y_margin min_val max_val var_label {sample_c
         -font {Helvetica 9 bold}
 }
 
+set db_plot_active 0
 # ─── DB PLOT FUNCTION ───
 proc plot_from_db {} {
-    global selected_var selected_run plot
+    global selected_var selected_run db_path db_plot_active
 
-    set cmd "php /home/cody/trick_sims/SIM_BLDC_Motor/www/read_db.php $selected_var $selected_run"
+    set db_plot_active 1
 
-    if {[catch {exec sh -c $cmd} data]} {
-        puts "DB ERROR: $data"
+    package require sqlite3
+
+    if {![file exists $db_path]} {
+        puts "ERROR: DB not found at $db_path"
         return
     }
 
+    switch $selected_var {
+        "rpm"     { set col "rpm" }
+        "current" { set col "current" }
+        "power"   { set col "power" }
+        "bemf"    { set col "back_emf" }
+        default   {
+            puts "Unknown variable: $selected_var"
+            return
+        }
+    }
+
+    sqlite3 db_conn $db_path -readonly true
+
+    set times  {}
     set values {}
-    foreach line [split $data "\n"] {
-        if {$line ne ""} { lappend values $line }
+
+    db_conn eval "SELECT time, $col FROM motor_data 
+                  WHERE run_id = $selected_run
+                  ORDER BY time" row {
+        lappend times  $row(time)
+        lappend values $row($col)
+    }
+
+    db_conn close
+
+    # Prepend origin only for vars that start at 0
+    switch $selected_var {
+        "rpm" - "bemf" {
+            set times  [linsert $times  0 0.0 [lindex $times 0]]
+            set values [linsert $values 0 0.0 0.0]
+        }
     }
 
     set n [llength $values]
-    if {$n < 2} return
+    if {$n < 2} {
+        puts "No data for run_id=$selected_run var=$col"
+        return
+    }
+
+    puts "Plotting $n points: var=$col run=$selected_run"
 
     .plot delete all
 
-    # Fixed X axis (samples)
-    set plot [::Plotchart::createXYPlot .plot \
-        {0 300 50} \
-        [get_fixed_range $selected_var]
+    set t_start 0.0
+    set t_end   [lindex $times end]
+    if {$t_end <= $t_start} { set t_end [expr {$t_start + 1}] }
+
+    set yrange [get_fixed_range $selected_var]
+    set y_min  [lindex $yrange 0]
+    set y_max  [lindex $yrange 1]
+    set y_step [expr {($y_max - $y_min) / 5.0}]
+    set x_step [expr {($t_end - $t_start) / 5.0}]
+
+    set p [::Plotchart::createXYPlot .plot \
+        [list $t_start $t_end $x_step] \
+        [list $y_min   $y_max $y_step] \
     ]
 
+    $p dataconfig series1 -colour cyan
+    $p yconfig -format "%.0f"
+    $p xconfig -format "%.2f"
+
     for {set i 0} {$i < $n} {incr i} {
-        $plot plot series1 $i [lindex $values $i]
+        $p plot series1 [lindex $times $i] [lindex $values $i]
     }
 }
 

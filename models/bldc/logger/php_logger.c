@@ -1,8 +1,23 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../include/bldc.h"   // for BLDC_MOTOR
+#include "../include/bldc.h"
 
 void log_to_php(BLDC_MOTOR *m) {
+
+    static double last_log_time = -1.0;   // persists across calls
+    double dt = 0.05;                    // desired logging interval
+
+    // Skip startup transient 
+    if (m->time < 0.10) {
+        return;
+    }
+
+    // Skip if not enough time has passed
+    if (last_log_time >= 0 && (m->time - last_log_time) < dt) {
+        return;
+    }
+
+    last_log_time = m->time;
 
     char cmd[512];
 
@@ -18,9 +33,8 @@ void log_to_php(BLDC_MOTOR *m) {
     );
 
     int ret = system(cmd);
-    
+
     printf("Logging at time: %f\n", m->time);
-    system(cmd);
 
     if (ret != 0) {
         printf("PHP logger failed\n");
